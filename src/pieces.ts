@@ -3,10 +3,10 @@ class Piece {
 		public type: string,
 		public color: string,
 		public position: { x: number; y: number },
-	) {
-		console.log(
-			`Created a ${color} ${type} at position (${position.x}, ${position.y})`,
-		);
+	) {}
+
+	public getImage() {
+		return `sprites/${this.color}_${this.type}.png`;
 	}
 }
 

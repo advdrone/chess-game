@@ -20,7 +20,16 @@ for (let i = 0; i < 64; i++) {
 		square.classList.add("dark-square");
 	}
 
+	if (row == 6) {
+		const piece = new Piece("pawn", "light", { x: col, y: row });
+		const image = document.createElement("img");
+
+		image.src = piece.getImage();
+		image.classList.add("chess-piece");
+
+		console.log(image.src);
+		square.appendChild(image);
+	}
+
 	board.appendChild(square);
 }
-
-new Piece("pawn", "white", { x: 0, y: 0 });
