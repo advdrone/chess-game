@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Chess Board</title>
+  
+  <style>
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(8, 50px);
+    }
+
+
+    .light-square {
+      width: 50px;
+      height: 50px;
+      background-color: rgb(240, 240, 240);
+    }
+
+    .dark-square {
+      width: 50px;
+      height: 50px;
+      background-color: green;
+    }
+  </style>
+
+
+</head>
+  <body>
+    <div class="grid-container">
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
