@@ -6,6 +6,21 @@ if (!board) {
 	throw new Error("Board element not found");
 }
 
+function placeChessPiece(
+	type: string,
+	color: string,
+	position: { x: number; y: number },
+	square: HTMLDivElement,
+) {
+	const piece = new Piece(type, color, position);
+	const image = document.createElement("img");
+
+	image.src = piece.getImage();
+	image.classList.add("chess-piece");
+
+	square.appendChild(image);
+}
+
 for (let i = 0; i < 64; i++) {
 	const square = document.createElement("div");
 
@@ -20,15 +35,64 @@ for (let i = 0; i < 64; i++) {
 		square.classList.add("dark-square");
 	}
 
+	// pawns
+
+	if (row == 1) {
+		placeChessPiece("pawn", "dark", { x: col, y: row }, square);
+	}
+
 	if (row == 6) {
-		const piece = new Piece("pawn", "light", { x: col, y: row });
-		const image = document.createElement("img");
+		placeChessPiece("pawn", "light", { x: col, y: row }, square);
+	}
 
-		image.src = piece.getImage();
-		image.classList.add("chess-piece");
+	// rooks
 
-		console.log(image.src);
-		square.appendChild(image);
+	if (row == 0 && (col == 0 || col == 7)) {
+		placeChessPiece("rook", "dark", { x: col, y: row }, square);
+	}
+
+	if (row == 7 && (col == 0 || col == 7)) {
+		placeChessPiece("rook", "light", { x: col, y: row }, square);
+	}
+
+	// knights
+
+	if (row == 0 && (col == 1 || col == 6)) {
+		placeChessPiece("knight", "dark", { x: col, y: row }, square);
+	}
+
+	if (row == 7 && (col == 1 || col == 6)) {
+		placeChessPiece("knight", "light", { x: col, y: row }, square);
+	}
+
+	// bishops
+
+	if (row == 0 && (col == 2 || col == 5)) {
+		placeChessPiece("bishop", "dark", { x: col, y: row }, square);
+	}
+
+	if (row == 7 && (col == 2 || col == 5)) {
+		placeChessPiece("bishop", "light", { x: col, y: row }, square);
+	}
+
+	// queens
+
+	if (row == 0 && col == 3) {
+		placeChessPiece("queen", "dark", { x: col, y: row }, square);
+	}
+
+	if (row == 7 && col == 3) {
+		placeChessPiece("queen", "light", { x: col, y: row }, square);
+	}
+
+	// kings
+
+	if (row == 0 && col == 4) {
+		placeChessPiece("king", "dark", { x: col, y: row }, square);
+	}
+
+	if (row == 7 && col == 4) {
+		placeChessPiece("king", "light", { x: col, y: row }, square);
 	}
 
 	board.appendChild(square);
