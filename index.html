@@ -5,25 +5,34 @@
   <title>My Chess Board</title>
   
   <style>
-    .grid-container {
-      display: grid;
-      grid-template-columns: repeat(8, 50px);
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
 
+    :root {
+      --square-size: 75px;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(8, var(--square-size));
+    }
 
     .light-square {
-      width: 50px;
-      height: 50px;
+      width: var(--square-size);
+      height: var(--square-size);
       background-color: rgb(240, 240, 240);
     }
 
     .dark-square {
-      width: 50px;
-      height: 50px;
+      width: var(--square-size);
+      height: var(--square-size);
       background-color: green;
     }
   </style>
-
 
 </head>
   <body>
