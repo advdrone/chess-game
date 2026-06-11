@@ -18,14 +18,44 @@ export function getValidPawnMoves(
 	const isWhitePawn = squareState.piece?.color == "light";
 	const direction = (isWhitePawn && -1) || 1;
 
-	const offset1 = boardState[getSquareIndex(row + 1 * direction, col)];
+	// check for a diagonal capture on the left for either side (-1 or +1 row)
+
+	if (row + direction >= 0 && row + direction < 8 && col - 1 >= 0) {
+		const leftDiagonalCapture =
+			boardState[getSquareIndex(row + direction, col - 1)];
+
+		if (
+			leftDiagonalCapture.piece &&
+			leftDiagonalCapture.piece.color != squareState.piece?.color
+		) {
+			moves.push(leftDiagonalCapture);
+		}
+	}
+
+	// check for a diagonal capture on the right for either side (-1 or +1 row)
+
+	if (row + direction >= 0 && row + direction < 8 && col + 1 < 8) {
+		const rightDiagonalCapture =
+			boardState[getSquareIndex(row + direction, col + 1)];
+
+		if (
+			rightDiagonalCapture.piece &&
+			rightDiagonalCapture.piece.color != squareState.piece?.color
+		) {
+			moves.push(rightDiagonalCapture);
+		}
+	}
+
+	const offset1 = boardState[getSquareIndex(row + direction, col)];
 	const offset2 = boardState[getSquareIndex(row + 2 * direction, col)];
 
-	if (offset1.piece == null) {
+	if (row + direction > 0 && row + direction < 8 && offset1.piece == null) {
 		moves.push(offset1);
 	}
 
 	if (
+		row + 2 * direction >= 0 &&
+		row + 2 * direction < 8 &&
 		offset2.piece == null &&
 		hasColLineOfSight(boardState, squareState, offset2) &&
 		((isWhitePawn && row == 6) || (!isWhitePawn && row == 1))
@@ -178,6 +208,7 @@ export function getValidKingMoves(
 	const col = Number(kingSquare.dataset.col);
 
 	const kingSquareIndex = getSquareIndex(row, col);
+	const kingSquareState = boardState[kingSquareIndex];
 
 	// todo: in the future, add logic to prevent king from moving to places where it would be in check (subtract the getValid moves of all the opposite side's pieces from the king possible moves)
 
@@ -194,10 +225,14 @@ export function getValidKingMoves(
 
 	for (const move of potentialMoves) {
 		if (move.row >= 0 && move.row < 8 && move.col >= 0 && move.col < 8) {
-			const targetSquare = boardState[getSquareIndex(move.row, move.col)];
+			const targetSquareState = boardState[getSquareIndex(move.row, move.col)];
 
-			if (targetSquare.piece == null) {
-				moves.push(targetSquare);
+			if (
+				(targetSquareState.piece &&
+					targetSquareState.piece.color != kingSquareState.piece?.color) ||
+				targetSquareState.piece == null
+			) {
+				moves.push(targetSquareState);
 			}
 		}
 	}
@@ -216,11 +251,13 @@ function hasDiagonalLineOfSight(
 	const square_b_row = square_b.y;
 	const square_b_col = square_b.x;
 
+	// end points excluded so it only gets squares in between
+
 	// case 1: square a is to the top left of square b, meaning square a has lower row and col
 
 	if (square_a_row < square_b_row && square_a_col < square_b_col) {
 		for (
-			let i = getSquareIndex(square_a_row, square_a_col);
+			let i = getSquareIndex(square_a_row, square_a_col) + 9;
 			i < getSquareIndex(square_b_row, square_b_col);
 			i = i + 9
 		) {
@@ -234,7 +271,7 @@ function hasDiagonalLineOfSight(
 
 	if (square_a_row < square_b_row && square_a_col > square_b_col) {
 		for (
-			let i = getSquareIndex(square_a_row, square_a_col);
+			let i = getSquareIndex(square_a_row, square_a_col) + 7;
 			i < getSquareIndex(square_b_row, square_b_col);
 			i = i + 7
 		) {
@@ -248,7 +285,7 @@ function hasDiagonalLineOfSight(
 
 	if (square_a_row > square_b_row && square_a_col < square_b_col) {
 		for (
-			let i = getSquareIndex(square_a_row, square_a_col);
+			let i = getSquareIndex(square_a_row, square_a_col) - 7;
 			i > getSquareIndex(square_b_row, square_b_col);
 			i = i - 7
 		) {
@@ -262,7 +299,7 @@ function hasDiagonalLineOfSight(
 
 	if (square_a_row > square_b_row && square_a_col > square_b_col) {
 		for (
-			let i = getSquareIndex(square_a_row, square_a_col);
+			let i = getSquareIndex(square_a_row, square_a_col) - 9;
 			i > getSquareIndex(square_b_row, square_b_col);
 			i = i - 9
 		) {
@@ -294,11 +331,14 @@ export function getValidBishopMoves(
 		if (row - i >= 0 && col - i >= 0) {
 			const top_left = boardState[getSquareIndex(row - i, col - i)];
 
-			if (
-				top_left.piece == null &&
-				hasDiagonalLineOfSight(boardState, top_left, bishopBoardSquare)
-			) {
-				moves.push(top_left);
+			if (hasDiagonalLineOfSight(boardState, top_left, bishopBoardSquare)) {
+				if (
+					(top_left.piece &&
+						top_left.piece.color != bishopBoardSquare.piece?.color) ||
+					top_left.piece == null
+				) {
+					moves.push(top_left);
+				}
 			}
 		}
 
@@ -306,11 +346,14 @@ export function getValidBishopMoves(
 		if (row - i >= 0 && col + i < 8) {
 			const top_right = boardState[getSquareIndex(row - i, col + i)];
 
-			if (
-				top_right.piece == null &&
-				hasDiagonalLineOfSight(boardState, top_right, bishopBoardSquare)
-			) {
-				moves.push(top_right);
+			if (hasDiagonalLineOfSight(boardState, top_right, bishopBoardSquare)) {
+				if (
+					(top_right.piece &&
+						top_right.piece.color != bishopBoardSquare.piece?.color) ||
+					top_right.piece == null
+				) {
+					moves.push(top_right);
+				}
 			}
 		}
 
@@ -318,11 +361,14 @@ export function getValidBishopMoves(
 		if (row + i < 8 && col - i >= 0) {
 			const bottom_left = boardState[getSquareIndex(row + i, col - i)];
 
-			if (
-				bottom_left.piece == null &&
-				hasDiagonalLineOfSight(boardState, bottom_left, bishopBoardSquare)
-			) {
-				moves.push(bottom_left);
+			if (hasDiagonalLineOfSight(boardState, bottom_left, bishopBoardSquare)) {
+				if (
+					(bottom_left.piece &&
+						bottom_left.piece.color != bishopBoardSquare.piece?.color) ||
+					bottom_left.piece == null
+				) {
+					moves.push(bottom_left);
+				}
 			}
 		}
 
@@ -330,11 +376,14 @@ export function getValidBishopMoves(
 		if (row + i < 8 && col + i < 8) {
 			const bottom_right = boardState[getSquareIndex(row + i, col + i)];
 
-			if (
-				bottom_right.piece == null &&
-				hasDiagonalLineOfSight(boardState, bottom_right, bishopBoardSquare)
-			) {
-				moves.push(bottom_right);
+			if (hasDiagonalLineOfSight(boardState, bottom_right, bishopBoardSquare)) {
+				if (
+					(bottom_right.piece &&
+						bottom_right.piece.color != bishopBoardSquare.piece?.color) ||
+					bottom_right.piece == null
+				) {
+					moves.push(bottom_right);
+				}
 			}
 		}
 	}
