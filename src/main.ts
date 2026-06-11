@@ -18,6 +18,8 @@ if (!board) {
 let selectedSquare: HTMLElement | null = null;
 let validMoves: Square[] | null = null;
 
+let playerTurn: string = "light";
+
 function placeChessPiece(
 	type: string,
 	color: string,
@@ -160,10 +162,23 @@ board.addEventListener("click", (event) => {
 	const previousSquare = selectedSquare;
 	const targetSquare = (event.target as HTMLElement).closest("div")!;
 
-	// show possible moves
+	const targetSquareIndex = getSquareIndex(
+		Number(targetSquare.dataset.row),
+		Number(targetSquare.dataset.col),
+	);
 
-	// wipe previous valid move highlights
+	if (
+		boardState[targetSquareIndex].piece != null &&
+		boardState[targetSquareIndex].piece.color != playerTurn &&
+		previousSquare == null // if we capture a piece, ignore
+	) {
+		return false;
+	}
+
 	if (validMoves) {
+		// show possible moves
+
+		// wipe previous valid move highlights
 		for (const square of validMoves) {
 			const domSquare = document.querySelector(
 				`[data-row="${square.y}"][data-col="${square.x}"]`,
@@ -186,11 +201,6 @@ board.addEventListener("click", (event) => {
 			const previousSquareIndex = getSquareIndex(
 				Number(previousSquare.dataset.row),
 				Number(previousSquare.dataset.col),
-			);
-
-			const targetSquareIndex = getSquareIndex(
-				Number(targetSquare.dataset.row),
-				Number(targetSquare.dataset.col),
 			);
 
 			if (
@@ -217,6 +227,8 @@ board.addEventListener("click", (event) => {
 			boardState[targetSquareIndex].piece =
 				boardState[previousSquareIndex].piece;
 			boardState[previousSquareIndex].piece = null;
+
+			playerTurn = (playerTurn == "light" && "dark") || "light";
 
 			selectedSquare = null;
 

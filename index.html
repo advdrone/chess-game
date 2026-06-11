@@ -32,7 +32,22 @@
     }
 
     .valid-move {
-      background-color: rgb(148, 91, 91) !important;
+      display:flex;
+      align-items: center;
+      justify-content: center;
+      position: relative
+    }
+
+    .valid-move::after {
+      position: absolute;
+      display:block;
+      content: "";
+      border-radius: 100%;
+      width: 25px;
+      height: 25px;
+      background-color:rgb(181, 181, 181);
+      opacity: 0.5;
+      z-index: 20;
     }
 
     .dark-square {
