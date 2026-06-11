@@ -1,4 +1,5 @@
 import {
+	getValidBishopMoves,
 	getValidKingMoves,
 	getValidKnightMoves,
 	getValidPawnMoves,

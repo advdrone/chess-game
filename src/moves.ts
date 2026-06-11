@@ -190,3 +190,57 @@ export function getValidKingMoves(
 
 	return moves;
 }
+
+export function getValidBishopMoves(
+	boardState: Square[],
+	bishopSquare: HTMLElement,
+): Square[] {
+	let moves = [];
+
+	const row = Number(bishopSquare.dataset.row);
+	const col = Number(bishopSquare.dataset.col);
+
+	const bishopSquareIndex = getSquareIndex(row, col);
+
+	for (let i = 1; i < 8; i++) {
+		// go outwards grabbing the corners with increasing gaps repeatedly until it can't anymore
+
+		/// top left
+		if (row - i >= 0 && col - i >= 0) {
+			const top_left = boardState[getSquareIndex(row - i, col - i)];
+
+			if (top_left.piece == null) {
+				moves.push(top_left);
+			}
+		}
+
+		/// top right
+		if (row - i >= 0 && col + i < 8) {
+			const top_right = boardState[getSquareIndex(row - i, col + i)];
+
+			if (top_right.piece == null) {
+				moves.push(top_right);
+			}
+		}
+
+		/// bottom left
+		if (row + i < 8 && col - i >= 0) {
+			const bottom_left = boardState[getSquareIndex(row + i, col - i)];
+
+			if (bottom_left.piece == null) {
+				moves.push(bottom_left);
+			}
+		}
+
+		/// bottom right
+		if (row + i < 8 && col + i < 8) {
+			const bottom_right = boardState[getSquareIndex(row + i, col + i)];
+
+			if (bottom_right.piece == null) {
+				moves.push(bottom_right);
+			}
+		}
+	}
+
+	return moves;
+}
