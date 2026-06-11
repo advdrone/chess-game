@@ -31,6 +31,10 @@ function placeChessPiece(
 	return piece;
 }
 
+function getSquareIndex(row: number, col: number): number {
+	return row * 8 + col;
+}
+
 const boardState: Square[] = new Array(64);
 
 for (let i = 0; i < 64; i++) {
@@ -38,6 +42,9 @@ for (let i = 0; i < 64; i++) {
 
 	const row = Math.floor(i / 8);
 	const col = i % 8;
+
+	square.dataset.row = String(row);
+	square.dataset.col = String(col);
 
 	if ((row + col) % 2 === 0) {
 		// even squares
@@ -134,7 +141,7 @@ for (let i = 0; i < 64; i++) {
 		pieceCreated = placeChessPiece("king", "light", { x: col, y: row }, square);
 	}
 
-	boardState[row * 8 + col] = {
+	boardState[getSquareIndex(row, col)] = {
 		x: col,
 		y: row,
 		piece: pieceCreated,
@@ -160,10 +167,24 @@ board.addEventListener("click", (event) => {
 		) {
 			// If the previous square has a piece, move the piece to the new square
 
+			const previousSquareIndex = getSquareIndex(
+				Number(previousSquare.dataset.row),
+				Number(previousSquare.dataset.col),
+			);
+
+			const targetSquareIndex = getSquareIndex(
+				Number(targetSquare.dataset.row),
+				Number(targetSquare.dataset.col),
+			);
+
 			const piece = previousSquare.removeChild(previousSquare.firstChild!);
 			targetSquare.appendChild(piece);
 
 			targetSquare.classList.remove("selected");
+
+			boardState[targetSquareIndex].piece =
+				boardState[previousSquareIndex].piece;
+			boardState[previousSquareIndex].piece = null;
 
 			return;
 		}
