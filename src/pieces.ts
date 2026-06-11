@@ -5,6 +5,8 @@ class Piece {
 		public position: { x: number; y: number },
 	) {}
 
+	public getMoves() {}
+
 	public getImage() {
 		return `sprites/${this.color}_${this.type}.png`;
 	}

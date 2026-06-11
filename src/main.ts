@@ -1,5 +1,11 @@
 import { Piece } from "./pieces";
 
+type Square = {
+	x: number;
+	y: number;
+	piece: Piece | null;
+};
+
 const board = document.querySelector(".grid-container");
 
 if (!board) {
@@ -13,7 +19,7 @@ function placeChessPiece(
 	color: string,
 	position: { x: number; y: number },
 	square: HTMLDivElement,
-) {
+): Piece {
 	const piece = new Piece(type, color, position);
 	const image = document.createElement("img");
 
@@ -21,7 +27,11 @@ function placeChessPiece(
 	image.classList.add("chess-piece");
 
 	square.appendChild(image);
+
+	return piece;
 }
+
+const boardState: Square[] = new Array(64);
 
 for (let i = 0; i < 64; i++) {
 	const square = document.createElement("div");
@@ -37,68 +47,103 @@ for (let i = 0; i < 64; i++) {
 		square.classList.add("dark-square");
 	}
 
+	let pieceCreated = null;
+
 	// pawns
 
 	if (row == 1) {
-		placeChessPiece("pawn", "dark", { x: col, y: row }, square);
+		pieceCreated = placeChessPiece("pawn", "dark", { x: col, y: row }, square);
 	}
 
 	if (row == 6) {
-		placeChessPiece("pawn", "light", { x: col, y: row }, square);
+		pieceCreated = placeChessPiece("pawn", "light", { x: col, y: row }, square);
 	}
 
 	// rooks
 
 	if (row == 0 && (col == 0 || col == 7)) {
-		placeChessPiece("rook", "dark", { x: col, y: row }, square);
+		pieceCreated = placeChessPiece("rook", "dark", { x: col, y: row }, square);
 	}
 
 	if (row == 7 && (col == 0 || col == 7)) {
-		placeChessPiece("rook", "light", { x: col, y: row }, square);
+		pieceCreated = placeChessPiece("rook", "light", { x: col, y: row }, square);
 	}
 
 	// knights
 
 	if (row == 0 && (col == 1 || col == 6)) {
-		placeChessPiece("knight", "dark", { x: col, y: row }, square);
+		pieceCreated = placeChessPiece(
+			"knight",
+			"dark",
+			{ x: col, y: row },
+			square,
+		);
 	}
 
 	if (row == 7 && (col == 1 || col == 6)) {
-		placeChessPiece("knight", "light", { x: col, y: row }, square);
+		pieceCreated = placeChessPiece(
+			"knight",
+			"light",
+			{ x: col, y: row },
+			square,
+		);
 	}
 
 	// bishops
 
 	if (row == 0 && (col == 2 || col == 5)) {
-		placeChessPiece("bishop", "dark", { x: col, y: row }, square);
+		pieceCreated = placeChessPiece(
+			"bishop",
+			"dark",
+			{ x: col, y: row },
+			square,
+		);
 	}
 
 	if (row == 7 && (col == 2 || col == 5)) {
-		placeChessPiece("bishop", "light", { x: col, y: row }, square);
+		pieceCreated = placeChessPiece(
+			"bishop",
+			"light",
+			{ x: col, y: row },
+			square,
+		);
 	}
 
 	// queens
 
 	if (row == 0 && col == 3) {
-		placeChessPiece("queen", "dark", { x: col, y: row }, square);
+		pieceCreated = placeChessPiece("queen", "dark", { x: col, y: row }, square);
 	}
 
 	if (row == 7 && col == 3) {
-		placeChessPiece("queen", "light", { x: col, y: row }, square);
+		pieceCreated = placeChessPiece(
+			"queen",
+			"light",
+			{ x: col, y: row },
+			square,
+		);
 	}
 
 	// kings
 
 	if (row == 0 && col == 4) {
-		placeChessPiece("king", "dark", { x: col, y: row }, square);
+		pieceCreated = placeChessPiece("king", "dark", { x: col, y: row }, square);
 	}
 
 	if (row == 7 && col == 4) {
-		placeChessPiece("king", "light", { x: col, y: row }, square);
+		pieceCreated = placeChessPiece("king", "light", { x: col, y: row }, square);
 	}
+
+	boardState[row * 8 + col] = {
+		x: col,
+		y: row,
+		piece: pieceCreated,
+	};
 
 	board.appendChild(square);
 }
+
+console.log(boardState);
 
 board.addEventListener("click", (event) => {
 	const previousSquare = selectedSquare;
