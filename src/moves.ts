@@ -400,3 +400,62 @@ export function getValidQueenMoves(
 		...getValidBishopMoves(boardState, queenSquare),
 	];
 }
+
+export function getKingSquare(boardState: Square[], color: string): Square {
+	for (let i = 0; i < 64; i++) {
+		if (
+			boardState[i].piece?.type == "king" &&
+			boardState[i].piece?.color == color
+		) {
+			return boardState[i];
+		}
+	}
+
+	throw new Error(`The ${color} king is not found on board`);
+}
+
+export function determineIfInCheck(
+	boardState: Square[],
+	kingSquare: HTMLElement,
+): Boolean {
+	const row = Number(kingSquare.dataset.row);
+	const col = Number(kingSquare.dataset.col);
+
+	const kingSquareIndex = getSquareIndex(row, col);
+	const kingSquareState = boardState[kingSquareIndex];
+
+	for (let i = 0; i < 64; i++) {
+		const squareState = boardState[i];
+
+		const domSquare = document.querySelector(
+			`[data-row="${squareState.y}"][data-col="${squareState.x}"]`,
+		) as HTMLElement;
+
+		if (squareState.piece?.color != kingSquareState.piece?.color) {
+			const pieceType = squareState.piece?.type;
+
+			let moves: Square[] = [];
+
+			if (pieceType == "pawn") {
+				moves = getValidPawnMoves(boardState, domSquare);
+			} else if (pieceType == "bishop") {
+				moves = getValidBishopMoves(boardState, domSquare);
+			} else if (pieceType == "knight") {
+				moves = getValidKnightMoves(boardState, domSquare);
+			} else if (pieceType == "rook") {
+				moves = getValidRookMoves(boardState, domSquare);
+			} else if (pieceType == "queen") {
+				moves = getValidQueenMoves(boardState, domSquare);
+			}
+
+			for (const move of moves) {
+				if (move.x == col && move.y == row) {
+					console.log("King is in check!");
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}

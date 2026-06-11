@@ -1,4 +1,6 @@
 import {
+	determineIfInCheck,
+	getKingSquare,
 	getValidBishopMoves,
 	getValidKingMoves,
 	getValidKnightMoves,
@@ -19,6 +21,10 @@ let selectedSquare: HTMLElement | null = null;
 let validMoves: Square[] | null = null;
 
 let playerTurn: string = "light";
+
+function getDomSquareFromBoardSquare(row: number, col: number) {
+	return document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+}
 
 function placeChessPiece(
 	type: string,
@@ -180,9 +186,7 @@ board.addEventListener("click", (event) => {
 
 		// wipe previous valid move highlights
 		for (const square of validMoves) {
-			const domSquare = document.querySelector(
-				`[data-row="${square.y}"][data-col="${square.x}"]`,
-			);
+			const domSquare = getDomSquareFromBoardSquare(square.y, square.x);
 			domSquare!.classList.remove("valid-move");
 		}
 	}
@@ -230,6 +234,16 @@ board.addEventListener("click", (event) => {
 
 			playerTurn = (playerTurn == "light" && "dark") || "light";
 
+			const kingSquare = getKingSquare(boardState, playerTurn);
+			const kingDomSquare = getDomSquareFromBoardSquare(
+				kingSquare.y,
+				kingSquare.x,
+			);
+
+			if (kingDomSquare && determineIfInCheck(boardState, kingDomSquare)) {
+				console.log("Do something here to indicate check");
+			}
+
 			selectedSquare = null;
 
 			return;
@@ -268,9 +282,7 @@ board.addEventListener("click", (event) => {
 		}
 
 		for (const square of validMoves) {
-			const domSquare = document.querySelector(
-				`[data-row="${square.y}"][data-col="${square.x}"]`,
-			);
+			const domSquare = getDomSquareFromBoardSquare(square.y, square.x);
 			domSquare!.classList.add("valid-move");
 		}
 	}
