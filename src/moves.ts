@@ -153,3 +153,40 @@ export function getValidRookMoves(
 
 	return moves;
 }
+
+export function getValidKingMoves(
+	boardState: Square[],
+	kingSquare: HTMLElement,
+): Square[] {
+	let moves = [];
+
+	const row = Number(kingSquare.dataset.row);
+	const col = Number(kingSquare.dataset.col);
+
+	const kingSquareIndex = getSquareIndex(row, col);
+
+	// todo: in the future, add logic to prevent king from moving to places where it would be in check (subtract the getValid moves of all the opposite side's pieces from the king possible moves)
+
+	const potentialMoves = [
+		{ row: row - 1, col: col - 1 },
+		{ row: row - 1, col: col },
+		{ row: row - 1, col: col + 1 },
+		{ row: row, col: col - 1 },
+		{ row: row, col: col + 1 },
+		{ row: row + 1, col: col - 1 },
+		{ row: row + 1, col: col },
+		{ row: row + 1, col: col + 1 },
+	];
+
+	for (const move of potentialMoves) {
+		if (move.row >= 0 && move.row < 8 && move.col >= 0 && move.col < 8) {
+			const targetSquare = boardState[getSquareIndex(move.row, move.col)];
+
+			if (targetSquare.piece == null) {
+				moves.push(targetSquare);
+			}
+		}
+	}
+
+	return moves;
+}

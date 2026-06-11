@@ -1,4 +1,5 @@
 import {
+	getValidKingMoves,
 	getValidKnightMoves,
 	getValidPawnMoves,
 	getValidRookMoves,
@@ -186,6 +187,10 @@ board.addEventListener("click", (event) => {
 			validMoves = getValidKnightMoves(boardState, targetSquare);
 		} else if (piece?.type == "rook") {
 			validMoves = getValidRookMoves(boardState, targetSquare);
+		} else if (piece?.type == "king") {
+			validMoves = getValidKingMoves(boardState, targetSquare);
+		} else if (piece?.type == "bishop") {
+			validMoves = getValidBishopMoves(boardState, targetSquare);
 		} else {
 			validMoves = null;
 		}
