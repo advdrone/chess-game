@@ -15,15 +15,22 @@ export function getValidPawnMoves(
 
 	const squareState = boardState[getSquareIndex(row, col)];
 
-	const aboveSquare = boardState[getSquareIndex(row - 1, col)];
-	const aboveSquare2 = boardState[getSquareIndex(row - 2, col)];
+	const isWhitePawn = squareState.piece?.color == "light";
+	const direction = (isWhitePawn && -1) || 1;
 
-	if (aboveSquare.piece == null) {
-		moves.push(aboveSquare);
+	const offset1 = boardState[getSquareIndex(row + 1 * direction, col)];
+	const offset2 = boardState[getSquareIndex(row + 2 * direction, col)];
+
+	if (offset1.piece == null) {
+		moves.push(offset1);
 	}
 
-	if (aboveSquare2.piece == null && row == 6) {
-		moves.push(aboveSquare2);
+	if (
+		offset2.piece == null &&
+		hasColLineOfSight(boardState, squareState, offset2) &&
+		((isWhitePawn && row == 6) || (!isWhitePawn && row == 1))
+	) {
+		moves.push(offset2);
 	}
 
 	return moves;

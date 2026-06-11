@@ -244,7 +244,7 @@ board.addEventListener("click", (event) => {
 						square.y == Math.floor(targetSquareIndex / 8),
 				) == null
 			) {
-				console.log("Invalid move");
+				selectedSquare = null;
 				return;
 			}
 
@@ -256,6 +256,8 @@ board.addEventListener("click", (event) => {
 			boardState[targetSquareIndex].piece =
 				boardState[previousSquareIndex].piece;
 			boardState[previousSquareIndex].piece = null;
+
+			selectedSquare = null;
 
 			return;
 		}
