@@ -191,6 +191,76 @@ export function getValidKingMoves(
 	return moves;
 }
 
+function hasDiagonalLineOfSight(
+	boardState: Square[],
+	square_a: Square,
+	square_b: Square,
+): Boolean {
+	const square_a_row = square_a.y;
+	const square_a_col = square_a.x;
+
+	const square_b_row = square_b.y;
+	const square_b_col = square_b.x;
+
+	// case 1: square a is to the top left of square b, meaning square a has lower row and col
+
+	if (square_a_row < square_b_row && square_a_col < square_b_col) {
+		for (
+			let i = getSquareIndex(square_a_row, square_a_col);
+			i < getSquareIndex(square_b_row, square_b_col);
+			i = i + 9
+		) {
+			if (boardState[i].piece != null) {
+				return false;
+			}
+		}
+	}
+
+	// case 2: square a is to the top right of square b, meaning square a has lower row but greater col
+
+	if (square_a_row < square_b_row && square_a_col > square_b_col) {
+		for (
+			let i = getSquareIndex(square_a_row, square_a_col);
+			i < getSquareIndex(square_b_row, square_b_col);
+			i = i + 7
+		) {
+			if (boardState[i].piece != null) {
+				return false;
+			}
+		}
+	}
+
+	// case 3: square a is to the bottom lef of square b, meaning square a has greater row but lower col
+
+	if (square_a_row > square_b_row && square_a_col < square_b_col) {
+		for (
+			let i = getSquareIndex(square_a_row, square_a_col);
+			i > getSquareIndex(square_b_row, square_b_col);
+			i = i - 7
+		) {
+			if (boardState[i].piece != null) {
+				return false;
+			}
+		}
+	}
+
+	// case 4: square a is to the bottom right of square b, meaning square a has greater row and col
+
+	if (square_a_row > square_b_row && square_a_col > square_b_col) {
+		for (
+			let i = getSquareIndex(square_a_row, square_a_col);
+			i > getSquareIndex(square_b_row, square_b_col);
+			i = i - 9
+		) {
+			if (boardState[i].piece != null) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 export function getValidBishopMoves(
 	boardState: Square[],
 	bishopSquare: HTMLElement,
@@ -201,6 +271,7 @@ export function getValidBishopMoves(
 	const col = Number(bishopSquare.dataset.col);
 
 	const bishopSquareIndex = getSquareIndex(row, col);
+	const bishopBoardSquare = boardState[bishopSquareIndex];
 
 	for (let i = 1; i < 8; i++) {
 		// go outwards grabbing the corners with increasing gaps repeatedly until it can't anymore
@@ -209,7 +280,10 @@ export function getValidBishopMoves(
 		if (row - i >= 0 && col - i >= 0) {
 			const top_left = boardState[getSquareIndex(row - i, col - i)];
 
-			if (top_left.piece == null) {
+			if (
+				top_left.piece == null &&
+				hasDiagonalLineOfSight(boardState, top_left, bishopBoardSquare)
+			) {
 				moves.push(top_left);
 			}
 		}
@@ -218,7 +292,10 @@ export function getValidBishopMoves(
 		if (row - i >= 0 && col + i < 8) {
 			const top_right = boardState[getSquareIndex(row - i, col + i)];
 
-			if (top_right.piece == null) {
+			if (
+				top_right.piece == null &&
+				hasDiagonalLineOfSight(boardState, top_right, bishopBoardSquare)
+			) {
 				moves.push(top_right);
 			}
 		}
@@ -227,7 +304,10 @@ export function getValidBishopMoves(
 		if (row + i < 8 && col - i >= 0) {
 			const bottom_left = boardState[getSquareIndex(row + i, col - i)];
 
-			if (bottom_left.piece == null) {
+			if (
+				bottom_left.piece == null &&
+				hasDiagonalLineOfSight(boardState, bottom_left, bishopBoardSquare)
+			) {
 				moves.push(bottom_left);
 			}
 		}
@@ -236,11 +316,24 @@ export function getValidBishopMoves(
 		if (row + i < 8 && col + i < 8) {
 			const bottom_right = boardState[getSquareIndex(row + i, col + i)];
 
-			if (bottom_right.piece == null) {
+			if (
+				bottom_right.piece == null &&
+				hasDiagonalLineOfSight(boardState, bottom_right, bishopBoardSquare)
+			) {
 				moves.push(bottom_right);
 			}
 		}
 	}
 
 	return moves;
+}
+
+export function getValidQueenMoves(
+	boardState: Square[],
+	queenSquare: HTMLElement,
+): Square[] {
+	return [
+		...getValidRookMoves(boardState, queenSquare),
+		...getValidBishopMoves(boardState, queenSquare),
+	];
 }

@@ -3,6 +3,7 @@ import {
 	getValidKingMoves,
 	getValidKnightMoves,
 	getValidPawnMoves,
+	getValidQueenMoves,
 	getValidRookMoves,
 } from "./moves";
 import { Piece } from "./pieces";
@@ -192,6 +193,8 @@ board.addEventListener("click", (event) => {
 			validMoves = getValidKingMoves(boardState, targetSquare);
 		} else if (piece?.type == "bishop") {
 			validMoves = getValidBishopMoves(boardState, targetSquare);
+		} else if (piece?.type == "queen") {
+			validMoves = getValidQueenMoves(boardState, targetSquare);
 		} else {
 			validMoves = null;
 		}
