@@ -108,18 +108,19 @@ board.addEventListener("click", (event) => {
 		// already have a selected square, remove the highlight
 		previousSquare.classList.remove("selected");
 
-		console.log(
-			"Previous square has child nodes:",
-			previousSquare.hasChildNodes(),
-		);
-
-		if (previousSquare.hasChildNodes()) {
+		if (
+			previousSquare.hasChildNodes() &&
+			targetSquare !== previousSquare &&
+			!targetSquare.hasChildNodes()
+		) {
 			// If the previous square has a piece, move the piece to the new square
 
 			const piece = previousSquare.removeChild(previousSquare.firstChild!);
 			targetSquare.appendChild(piece);
 
-			console.log("Moved piece from", previousSquare, "to", targetSquare);
+			targetSquare.classList.remove("selected");
+
+			return;
 		}
 	}
 
