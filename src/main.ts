@@ -13,6 +13,7 @@ if (!board) {
 }
 
 let selectedSquare: HTMLElement | null = null;
+let validMoves: Square[] | null = null;
 
 function placeChessPiece(
 	type: string,
@@ -33,6 +34,28 @@ function placeChessPiece(
 
 function getSquareIndex(row: number, col: number): number {
 	return row * 8 + col;
+}
+
+function getValidPawnMoves(pawnSquare: HTMLElement): Square[] {
+	let moves = [];
+
+	const row = Number(pawnSquare.dataset.row);
+	const col = Number(pawnSquare.dataset.col);
+
+	const squareState = boardState[getSquareIndex(row, col)];
+
+	const aboveSquare = boardState[getSquareIndex(row - 1, col)];
+	const aboveSquare2 = boardState[getSquareIndex(row - 2, col)];
+
+	if (aboveSquare.piece == null) {
+		moves.push(aboveSquare);
+	}
+
+	if (aboveSquare2.piece == null && row == 6) {
+		moves.push(aboveSquare2);
+	}
+
+	return moves;
 }
 
 const boardState: Square[] = new Array(64);
@@ -156,9 +179,42 @@ board.addEventListener("click", (event) => {
 	const previousSquare = selectedSquare;
 	const targetSquare = (event.target as HTMLElement).closest("div")!;
 
+	// show possible moves
+
+	// wipe previous valid move highlights
+	if (validMoves) {
+		for (const square of validMoves) {
+			const domSquare = document.querySelector(
+				`[data-row="${square.y}"][data-col="${square.x}"]`,
+			);
+			domSquare!.classList.remove("valid-move");
+		}
+	}
+
+	// calculate new valid moves if the square has a piece on it
+
+	if (targetSquare.hasChildNodes()) {
+		validMoves = getValidPawnMoves(targetSquare);
+
+		if (!validMoves) {
+			return;
+		}
+
+		for (const square of validMoves) {
+			const domSquare = document.querySelector(
+				`[data-row="${square.y}"][data-col="${square.x}"]`,
+			);
+			domSquare!.classList.add("valid-move");
+		}
+	}
+
+	// movement logic
+
 	if (previousSquare != null) {
 		// already have a selected square, remove the highlight
 		previousSquare.classList.remove("selected");
+
+		// move piece if valid move is selected
 
 		if (
 			previousSquare.hasChildNodes() &&
@@ -190,6 +246,6 @@ board.addEventListener("click", (event) => {
 		}
 	}
 
-	selectedSquare = (event.target as HTMLElement).closest("div")!;
+	selectedSquare = targetSquare;
 	selectedSquare.classList.add("selected");
 });
