@@ -61,3 +61,28 @@ export function getValidKnightMoves(
 
 	return moves;
 }
+
+export function getValidRookMoves(
+	boardState: Square[],
+	rookSquare: HTMLElement,
+): Square[] {
+	let moves = [];
+
+	const row = Number(rookSquare.dataset.row);
+	const col = Number(rookSquare.dataset.col);
+
+	for (let i = 0; i < 64; i++) {
+		const i_row = Math.floor(i / 8);
+		const i_col = i % 8;
+
+		if (i_row == row && boardState[i].piece == null) {
+			moves.push(boardState[getSquareIndex(i_row, i_col)]);
+		}
+
+		if (i_col == col && boardState[i].piece == null) {
+			moves.push(boardState[getSquareIndex(i_row, i_col)]);
+		}
+	}
+
+	return moves;
+}

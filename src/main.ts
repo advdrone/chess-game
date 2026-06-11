@@ -1,4 +1,8 @@
-import { getValidKnightMoves, getValidPawnMoves } from "./moves";
+import {
+	getValidKnightMoves,
+	getValidPawnMoves,
+	getValidRookMoves,
+} from "./moves";
 import { Piece } from "./pieces";
 import { Square } from "./types";
 
@@ -180,6 +184,8 @@ board.addEventListener("click", (event) => {
 			validMoves = getValidPawnMoves(boardState, targetSquare);
 		} else if (piece?.type == "knight") {
 			validMoves = getValidKnightMoves(boardState, targetSquare);
+		} else if (piece?.type == "rook") {
+			validMoves = getValidRookMoves(boardState, targetSquare);
 		} else {
 			validMoves = null;
 		}
