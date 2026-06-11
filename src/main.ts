@@ -102,7 +102,7 @@ for (let i = 0; i < 64; i++) {
 
 board.addEventListener("click", (event) => {
 	const previousSquare = selectedSquare;
-	const targetSquare = event.target as HTMLElement;
+	const targetSquare = (event.target as HTMLElement).closest("div")!;
 
 	if (previousSquare != null) {
 		// already have a selected square, remove the highlight
@@ -123,6 +123,6 @@ board.addEventListener("click", (event) => {
 		}
 	}
 
-	selectedSquare = event.target as HTMLElement;
+	selectedSquare = (event.target as HTMLElement).closest("div")!;
 	selectedSquare.classList.add("selected");
 });
