@@ -62,6 +62,54 @@ export function getValidKnightMoves(
 	return moves;
 }
 
+// checks if two squares can see each other without obstructions in the same row
+
+function hasRowLineOfSight(
+	boardState: Square[],
+	square_a: Square,
+	square_b: Square,
+): Boolean {
+	const square_a_col = square_a.x;
+	const square_b_col = square_b.x;
+
+	const shared_row = square_a.y;
+
+	for (
+		let i = Math.min(square_a_col, square_b_col) + 1;
+		i < Math.max(square_a_col, square_b_col);
+		i++
+	) {
+		if (boardState[getSquareIndex(shared_row, i)].piece != null) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function hasColLineOfSight( // squares guaranteed to be same column, different rows
+	boardState: Square[],
+	square_a: Square,
+	square_b: Square,
+): Boolean {
+	const square_a_row = square_a.y;
+	const square_b_row = square_b.y;
+
+	const shared_col = square_a.x;
+
+	for (
+		let i = Math.min(square_a_row, square_b_row) + 1;
+		i < Math.max(square_a_row, square_b_row);
+		i++
+	) {
+		if (boardState[getSquareIndex(i, shared_col)].piece != null) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 export function getValidRookMoves(
 	boardState: Square[],
 	rookSquare: HTMLElement,
@@ -71,16 +119,35 @@ export function getValidRookMoves(
 	const row = Number(rookSquare.dataset.row);
 	const col = Number(rookSquare.dataset.col);
 
-	for (let i = 0; i < 64; i++) {
-		const i_row = Math.floor(i / 8);
-		const i_col = i % 8;
+	const rookSquareIndex = getSquareIndex(row, col);
 
-		if (i_row == row && boardState[i].piece == null) {
-			moves.push(boardState[getSquareIndex(i_row, i_col)]);
+	for (let i_col = 0; i_col < 8; i_col++) {
+		const targetSquareIndex = getSquareIndex(row, i_col);
+
+		if (
+			boardState[targetSquareIndex].piece == null &&
+			hasRowLineOfSight(
+				boardState,
+				boardState[rookSquareIndex],
+				boardState[targetSquareIndex],
+			)
+		) {
+			moves.push(boardState[targetSquareIndex]);
 		}
+	}
 
-		if (i_col == col && boardState[i].piece == null) {
-			moves.push(boardState[getSquareIndex(i_row, i_col)]);
+	for (let i_row = 0; i_row < 8; i_row++) {
+		const targetSquareIndex = getSquareIndex(i_row, col);
+
+		if (
+			boardState[targetSquareIndex].piece == null &&
+			hasColLineOfSight(
+				boardState,
+				boardState[rookSquareIndex],
+				boardState[targetSquareIndex],
+			)
+		) {
+			moves.push(boardState[targetSquareIndex]);
 		}
 	}
 
