@@ -241,6 +241,8 @@ board.addEventListener("click", (event) => {
 			);
 
 			if (kingDomSquare && determineIfInCheck(boardState, kingDomSquare)) {
+				kingDomSquare?.classList.add("king-in-check");
+
 				console.log("Do something here to indicate check");
 			}
 
