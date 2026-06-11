@@ -172,6 +172,58 @@ board.addEventListener("click", (event) => {
 		}
 	}
 
+	// movement logic
+
+	if (previousSquare != null) {
+		// already have a selected square, remove the highlight
+		previousSquare.classList.remove("selected");
+
+		// move piece if valid move is selected
+
+		if (previousSquare.hasChildNodes() && targetSquare !== previousSquare) {
+			// If the previous square has a piece, move the piece to the new square
+
+			const previousSquareIndex = getSquareIndex(
+				Number(previousSquare.dataset.row),
+				Number(previousSquare.dataset.col),
+			);
+
+			const targetSquareIndex = getSquareIndex(
+				Number(targetSquare.dataset.row),
+				Number(targetSquare.dataset.col),
+			);
+
+			if (
+				validMoves &&
+				validMoves.find(
+					(square) =>
+						square.x == targetSquareIndex % 8 &&
+						square.y == Math.floor(targetSquareIndex / 8),
+				) == null
+			) {
+				selectedSquare = null;
+				return;
+			}
+
+			if (targetSquare.hasChildNodes()) {
+				targetSquare.removeChild(targetSquare.firstChild);
+			}
+
+			const piece = previousSquare.removeChild(previousSquare.firstChild!);
+			targetSquare.appendChild(piece);
+
+			targetSquare.classList.remove("selected");
+
+			boardState[targetSquareIndex].piece =
+				boardState[previousSquareIndex].piece;
+			boardState[previousSquareIndex].piece = null;
+
+			selectedSquare = null;
+
+			return;
+		}
+	}
+
 	// calculate new valid moves if the square has a piece on it
 
 	if (targetSquare.hasChildNodes()) {
@@ -208,58 +260,6 @@ board.addEventListener("click", (event) => {
 				`[data-row="${square.y}"][data-col="${square.x}"]`,
 			);
 			domSquare!.classList.add("valid-move");
-		}
-	}
-
-	// movement logic
-
-	if (previousSquare != null) {
-		// already have a selected square, remove the highlight
-		previousSquare.classList.remove("selected");
-
-		// move piece if valid move is selected
-
-		if (
-			previousSquare.hasChildNodes() &&
-			targetSquare !== previousSquare &&
-			!targetSquare.hasChildNodes()
-		) {
-			// If the previous square has a piece, move the piece to the new square
-
-			const previousSquareIndex = getSquareIndex(
-				Number(previousSquare.dataset.row),
-				Number(previousSquare.dataset.col),
-			);
-
-			const targetSquareIndex = getSquareIndex(
-				Number(targetSquare.dataset.row),
-				Number(targetSquare.dataset.col),
-			);
-
-			if (
-				validMoves &&
-				validMoves.find(
-					(square) =>
-						square.x == targetSquareIndex % 8 &&
-						square.y == Math.floor(targetSquareIndex / 8),
-				) == null
-			) {
-				selectedSquare = null;
-				return;
-			}
-
-			const piece = previousSquare.removeChild(previousSquare.firstChild!);
-			targetSquare.appendChild(piece);
-
-			targetSquare.classList.remove("selected");
-
-			boardState[targetSquareIndex].piece =
-				boardState[previousSquareIndex].piece;
-			boardState[previousSquareIndex].piece = null;
-
-			selectedSquare = null;
-
-			return;
 		}
 	}
 

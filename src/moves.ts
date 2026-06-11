@@ -45,6 +45,8 @@ export function getValidKnightMoves(
 	const row = Number(knightSquare.dataset.row);
 	const col = Number(knightSquare.dataset.col);
 
+	const knightSquareState = boardState[getSquareIndex(row, col)];
+
 	const potentialMoves = [
 		{ row: row + 1, col: col + 2 },
 		{ row: row + 2, col: col - 1 },
@@ -58,10 +60,14 @@ export function getValidKnightMoves(
 
 	for (const move of potentialMoves) {
 		if (move.row >= 0 && move.row < 8 && move.col >= 0 && move.col < 8) {
-			const targetSquare = boardState[getSquareIndex(move.row, move.col)];
+			const targetSquareState = boardState[getSquareIndex(move.row, move.col)];
 
-			if (targetSquare.piece == null) {
-				moves.push(targetSquare);
+			if (
+				(targetSquareState.piece &&
+					targetSquareState.piece.color != knightSquareState.piece?.color) ||
+				targetSquareState.piece == null
+			) {
+				moves.push(targetSquareState);
 			}
 		}
 	}
@@ -127,34 +133,35 @@ export function getValidRookMoves(
 	const col = Number(rookSquare.dataset.col);
 
 	const rookSquareIndex = getSquareIndex(row, col);
+	const rookSquareState = boardState[rookSquareIndex];
 
 	for (let i_col = 0; i_col < 8; i_col++) {
 		const targetSquareIndex = getSquareIndex(row, i_col);
+		const targetSquareState = boardState[targetSquareIndex];
 
-		if (
-			boardState[targetSquareIndex].piece == null &&
-			hasRowLineOfSight(
-				boardState,
-				boardState[rookSquareIndex],
-				boardState[targetSquareIndex],
-			)
-		) {
-			moves.push(boardState[targetSquareIndex]);
+		if (hasRowLineOfSight(boardState, rookSquareState, targetSquareState)) {
+			if (
+				(targetSquareState.piece &&
+					targetSquareState.piece.color != rookSquareState.piece?.color) ||
+				targetSquareState.piece == null
+			) {
+				moves.push(targetSquareState);
+			}
 		}
 	}
 
 	for (let i_row = 0; i_row < 8; i_row++) {
 		const targetSquareIndex = getSquareIndex(i_row, col);
+		const targetSquareState = boardState[targetSquareIndex];
 
-		if (
-			boardState[targetSquareIndex].piece == null &&
-			hasColLineOfSight(
-				boardState,
-				boardState[rookSquareIndex],
-				boardState[targetSquareIndex],
-			)
-		) {
-			moves.push(boardState[targetSquareIndex]);
+		if (hasColLineOfSight(boardState, rookSquareState, targetSquareState)) {
+			if (
+				(targetSquareState.piece &&
+					targetSquareState.piece.color != rookSquareState.piece?.color) ||
+				targetSquareState.piece == null
+			) {
+				moves.push(targetSquareState);
+			}
 		}
 	}
 
