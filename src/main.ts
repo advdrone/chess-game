@@ -6,6 +6,8 @@ if (!board) {
 	throw new Error("Board element not found");
 }
 
+let selectedSquare: HTMLElement | null = null;
+
 function placeChessPiece(
 	type: string,
 	color: string,
@@ -97,3 +99,30 @@ for (let i = 0; i < 64; i++) {
 
 	board.appendChild(square);
 }
+
+board.addEventListener("click", (event) => {
+	const previousSquare = selectedSquare;
+	const targetSquare = event.target as HTMLElement;
+
+	if (previousSquare != null) {
+		// already have a selected square, remove the highlight
+		previousSquare.classList.remove("selected");
+
+		console.log(
+			"Previous square has child nodes:",
+			previousSquare.hasChildNodes(),
+		);
+
+		if (previousSquare.hasChildNodes()) {
+			// If the previous square has a piece, move the piece to the new square
+
+			const piece = previousSquare.removeChild(previousSquare.firstChild!);
+			targetSquare.appendChild(piece);
+
+			console.log("Moved piece from", previousSquare, "to", targetSquare);
+		}
+	}
+
+	selectedSquare = event.target as HTMLElement;
+	selectedSquare.classList.add("selected");
+});
