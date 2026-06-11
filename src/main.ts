@@ -1,10 +1,6 @@
+import { getValidKnightMoves, getValidPawnMoves } from "./moves";
 import { Piece } from "./pieces";
-
-type Square = {
-	x: number;
-	y: number;
-	piece: Piece | null;
-};
+import { Square } from "./types";
 
 const board = document.querySelector(".grid-container");
 
@@ -34,28 +30,6 @@ function placeChessPiece(
 
 function getSquareIndex(row: number, col: number): number {
 	return row * 8 + col;
-}
-
-function getValidPawnMoves(pawnSquare: HTMLElement): Square[] {
-	let moves = [];
-
-	const row = Number(pawnSquare.dataset.row);
-	const col = Number(pawnSquare.dataset.col);
-
-	const squareState = boardState[getSquareIndex(row, col)];
-
-	const aboveSquare = boardState[getSquareIndex(row - 1, col)];
-	const aboveSquare2 = boardState[getSquareIndex(row - 2, col)];
-
-	if (aboveSquare.piece == null) {
-		moves.push(aboveSquare);
-	}
-
-	if (aboveSquare2.piece == null && row == 6) {
-		moves.push(aboveSquare2);
-	}
-
-	return moves;
 }
 
 const boardState: Square[] = new Array(64);
@@ -194,7 +168,21 @@ board.addEventListener("click", (event) => {
 	// calculate new valid moves if the square has a piece on it
 
 	if (targetSquare.hasChildNodes()) {
-		validMoves = getValidPawnMoves(targetSquare);
+		const piece =
+			boardState[
+				getSquareIndex(
+					Number(targetSquare.dataset.row),
+					Number(targetSquare.dataset.col),
+				)
+			].piece;
+
+		if (piece?.type == "pawn") {
+			validMoves = getValidPawnMoves(boardState, targetSquare);
+		} else if (piece?.type == "knight") {
+			validMoves = getValidKnightMoves(boardState, targetSquare);
+		} else {
+			validMoves = null;
+		}
 
 		if (!validMoves) {
 			return;
@@ -232,6 +220,18 @@ board.addEventListener("click", (event) => {
 				Number(targetSquare.dataset.row),
 				Number(targetSquare.dataset.col),
 			);
+
+			if (
+				validMoves &&
+				validMoves.find(
+					(square) =>
+						square.x == targetSquareIndex % 8 &&
+						square.y == Math.floor(targetSquareIndex / 8),
+				) == null
+			) {
+				console.log("Invalid move");
+				return;
+			}
 
 			const piece = previousSquare.removeChild(previousSquare.firstChild!);
 			targetSquare.appendChild(piece);
