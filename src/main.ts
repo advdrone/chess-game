@@ -165,10 +165,53 @@ for (let i = 0; i < 64; i++) {
 
 console.log(boardState);
 
-board.addEventListener("click", (event) => {
-	const previousSquare = selectedSquare;
-	const targetSquare = (event.target as HTMLElement).closest("div")!;
+function updateValidMoves(targetSquare: HTMLElement): boolean {
+	if (!targetSquare.hasChildNodes()) {
+		return false;
+	}
 
+	const piece =
+		boardState[
+			getSquareIndex(
+				Number(targetSquare.dataset.row),
+				Number(targetSquare.dataset.col),
+			)
+		].piece;
+
+	if (piece?.type == "pawn") {
+		validMoves = getValidPawnMoves(boardState, targetSquare);
+	} else if (piece?.type == "knight") {
+		validMoves = getValidKnightMoves(boardState, targetSquare);
+	} else if (piece?.type == "rook") {
+		validMoves = getValidRookMoves(boardState, targetSquare);
+	} else if (piece?.type == "king") {
+		validMoves = getValidKingMoves(boardState, targetSquare);
+	} else if (piece?.type == "bishop") {
+		validMoves = getValidBishopMoves(boardState, targetSquare);
+	} else if (piece?.type == "queen") {
+		validMoves = getValidQueenMoves(boardState, targetSquare);
+	} else {
+		validMoves = null;
+
+		return false;
+	}
+
+	if (!validMoves) {
+		return false;
+	}
+
+	for (const square of validMoves) {
+		const domSquare = getDomSquareFromBoardSquare(square.y, square.x);
+		domSquare!.classList.add("valid-move");
+	}
+
+	return true;
+}
+
+function movePiece(
+	previousSquare: HTMLElement,
+	targetSquare: HTMLElement,
+): boolean {
 	const targetSquareIndex = getSquareIndex(
 		Number(targetSquare.dataset.row),
 		Number(targetSquare.dataset.col),
@@ -183,8 +226,6 @@ board.addEventListener("click", (event) => {
 	}
 
 	if (validMoves) {
-		// show possible moves
-
 		// wipe previous valid move highlights
 		for (const square of validMoves) {
 			const domSquare = getDomSquareFromBoardSquare(square.y, square.x);
@@ -217,7 +258,7 @@ board.addEventListener("click", (event) => {
 				) == null
 			) {
 				selectedSquare = null;
-				return;
+				return false;
 			}
 
 			if (targetSquare.hasChildNodes()) {
@@ -254,47 +295,57 @@ board.addEventListener("click", (event) => {
 
 			selectedSquare = null;
 
-			return;
+			return false;
 		}
 	}
 
-	// calculate new valid moves if the square has a piece on it
+	return updateValidMoves(targetSquare); // boolean indicating if it found successful valid moves
+}
 
-	if (targetSquare.hasChildNodes()) {
-		const piece =
-			boardState[
-				getSquareIndex(
-					Number(targetSquare.dataset.row),
-					Number(targetSquare.dataset.col),
-				)
-			].piece;
+board.addEventListener("click", (event) => {
+	const targetSquare = (event.target as HTMLElement).closest("div")!;
 
-		if (piece?.type == "pawn") {
-			validMoves = getValidPawnMoves(boardState, targetSquare);
-		} else if (piece?.type == "knight") {
-			validMoves = getValidKnightMoves(boardState, targetSquare);
-		} else if (piece?.type == "rook") {
-			validMoves = getValidRookMoves(boardState, targetSquare);
-		} else if (piece?.type == "king") {
-			validMoves = getValidKingMoves(boardState, targetSquare);
-		} else if (piece?.type == "bishop") {
-			validMoves = getValidBishopMoves(boardState, targetSquare);
-		} else if (piece?.type == "queen") {
-			validMoves = getValidQueenMoves(boardState, targetSquare);
-		} else {
-			validMoves = null;
-		}
+	const shouldSelect = movePiece(selectedSquare, targetSquare);
 
-		if (!validMoves) {
-			return;
-		}
-
-		for (const square of validMoves) {
-			const domSquare = getDomSquareFromBoardSquare(square.y, square.x);
-			domSquare!.classList.add("valid-move");
-		}
+	if (shouldSelect) {
+		// a piece was seelcted and needs to be highlighted; this is false when a move was done or nothing happened so it shouldn't select a square
+		selectedSquare = targetSquare;
+		selectedSquare.classList.add("selected");
 	}
+});
 
-	selectedSquare = targetSquare;
-	selectedSquare.classList.add("selected");
+board.addEventListener("dragstart", (event) => {
+	const targetSquare = (event.target as HTMLElement).closest("div")!;
+
+	const pieceImage = targetSquare.querySelector("img");
+
+	(event as DragEvent).dataTransfer!.effectAllowed = "move";
+
+	const targetSquareIndex = getSquareIndex(
+		Number(targetSquare.dataset.row),
+		Number(targetSquare.dataset.col),
+	);
+
+	if (boardState[targetSquareIndex].piece?.color == playerTurn) {
+		selectedSquare = targetSquare;
+		updateValidMoves(selectedSquare);
+	}
+});
+
+board.addEventListener("dragover", (event) => {
+	(event as DragEvent).dataTransfer!.dropEffect = "move";
+
+	event.preventDefault();
+});
+
+board.addEventListener("drop", (event) => {
+	const targetSquare = (event.target as HTMLElement).closest("div")!;
+
+	const shouldSelect = movePiece(selectedSquare, targetSquare);
+
+	if (shouldSelect) {
+		// a piece was seelcted and needs to be highlighted; this is false when a move was done or nothing happened so it shouldn't select a square
+		selectedSquare = targetSquare;
+		selectedSquare.classList.add("selected");
+	}
 });
