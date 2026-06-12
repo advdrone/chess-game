@@ -212,6 +212,14 @@ function movePiece(
 	previousSquare: HTMLElement,
 	targetSquare: HTMLElement,
 ): boolean {
+	if (
+		kingInCheckSquare &&
+		targetSquare != kingInCheckSquare &&
+		previousSquare == null
+	) {
+		return false;
+	}
+
 	const targetSquareIndex = getSquareIndex(
 		Number(targetSquare.dataset.row),
 		Number(targetSquare.dataset.col),
@@ -305,6 +313,8 @@ function movePiece(
 board.addEventListener("click", (event) => {
 	const targetSquare = (event.target as HTMLElement).closest("div")!;
 
+	// can only select king if it's in check
+
 	const shouldSelect = movePiece(selectedSquare, targetSquare);
 
 	if (shouldSelect) {
@@ -326,7 +336,12 @@ board.addEventListener("dragstart", (event) => {
 		Number(targetSquare.dataset.col),
 	);
 
-	if (boardState[targetSquareIndex].piece?.color == playerTurn) {
+	if (
+		// true if either nobody is in check or the square being grabbed is the king in check square
+		(boardState[targetSquareIndex].piece?.color == playerTurn &&
+			!kingInCheckSquare) ||
+		targetSquare == kingInCheckSquare
+	) {
 		selectedSquare = targetSquare;
 		updateValidMoves(selectedSquare);
 	}
