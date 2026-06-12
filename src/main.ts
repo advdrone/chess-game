@@ -1,3 +1,6 @@
+import captureSound from "./sounds/capture.mp3";
+import moveSound from "./sounds/move-self.mp3";
+
 import {
 	determineIfInCheck,
 	getKingSquare,
@@ -10,6 +13,9 @@ import {
 } from "./moves";
 import { Piece } from "./pieces";
 import { Square } from "./types";
+
+const moveAudio = new Audio(moveSound);
+const captureAudio = new Audio(captureSound);
 
 const board = document.querySelector(".grid-container");
 
@@ -270,7 +276,13 @@ function movePiece(
 			}
 
 			if (targetSquare.hasChildNodes()) {
+				// capture piece
+
 				targetSquare.removeChild(targetSquare.firstChild);
+
+				captureAudio.play();
+			} else {
+				moveAudio.play();
 			}
 
 			const piece = previousSquare.removeChild(previousSquare.firstChild!);
