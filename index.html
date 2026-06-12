@@ -24,7 +24,7 @@
     .light-square {
       width: var(--square-size);
       height: var(--square-size);
-      background-color: rgb(201, 242, 183);
+      background-color: rgb(231, 239, 216);
     }
 
     .selected {
@@ -38,8 +38,8 @@
       position: relative
     }
 
-    .king-in-check {
-      box-shadow: 0 0 15px red;
+    .king-in-check img {
+      filter: drop-shadow(0 0 8px red)
     }
 
     .valid-move::after {
@@ -57,7 +57,7 @@
     .dark-square {
       width: var(--square-size);
       height: var(--square-size);
-      background-color: green;
+      background-color: rgb(63, 166, 63);
     }
 
     .chess-piece {

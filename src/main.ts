@@ -19,6 +19,7 @@ if (!board) {
 
 let selectedSquare: HTMLElement | null = null;
 let validMoves: Square[] | null = null;
+let kingInCheckSquare: HTMLElement | null = null;
 
 let playerTurn: string = "light";
 
@@ -243,7 +244,12 @@ board.addEventListener("click", (event) => {
 			if (kingDomSquare && determineIfInCheck(boardState, kingDomSquare)) {
 				kingDomSquare?.classList.add("king-in-check");
 
+				kingInCheckSquare = kingDomSquare;
+
 				console.log("Do something here to indicate check");
+			} else {
+				kingInCheckSquare?.classList.remove("king-in-check");
+				kingInCheckSquare = null;
 			}
 
 			selectedSquare = null;
