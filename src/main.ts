@@ -75,6 +75,16 @@ for (let i = 0; i < 64; i++) {
 
 	let pieceCreated = null;
 
+	// add labels
+
+	if (row == 7) {
+		square.dataset.colLabel = String.fromCharCode(97 + col);
+	}
+
+	if (col == 0) {
+		square.dataset.rowLabel = String(8 - row);
+	}
+
 	// pawns
 
 	if (row == 1) {
