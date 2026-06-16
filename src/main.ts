@@ -247,12 +247,13 @@ function getCheckmate() {
 }
 
 function selectSquare(square: HTMLElement) {
+	selectedSquare = square;
+
 	hideValidMoves();
 
 	validMoves = canSelectSquare(square) ? getValidMoves(square) : null;
 
 	if (validMoves) {
-		selectedSquare = square;
 		square.classList.add("selected");
 		showValidMoves(validMoves);
 
@@ -294,7 +295,7 @@ function movePiece(
 			);
 
 			if (
-				validMoves &&
+				!validMoves ||
 				validMoves.find(
 					(square) =>
 						square.x == targetSquareIndex % 8 &&
