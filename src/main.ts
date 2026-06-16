@@ -182,75 +182,88 @@ function getValidMoves(targetSquare: HTMLElement): Square[] | null {
 			)
 		].piece;
 
+	let possibleMoves: Square[] | null;
+
 	if (piece?.type == "pawn") {
-		validMoves = getValidPawnMoves(boardState, targetSquare);
+		possibleMoves = getValidPawnMoves(boardState, targetSquare);
 	} else if (piece?.type == "knight") {
-		validMoves = getValidKnightMoves(boardState, targetSquare);
+		possibleMoves = getValidKnightMoves(boardState, targetSquare);
 	} else if (piece?.type == "rook") {
-		validMoves = getValidRookMoves(boardState, targetSquare);
+		possibleMoves = getValidRookMoves(boardState, targetSquare);
 	} else if (piece?.type == "king") {
-		validMoves = getValidKingMoves(boardState, targetSquare);
+		possibleMoves = getValidKingMoves(boardState, targetSquare);
 	} else if (piece?.type == "bishop") {
-		validMoves = getValidBishopMoves(boardState, targetSquare);
+		possibleMoves = getValidBishopMoves(boardState, targetSquare);
 	} else if (piece?.type == "queen") {
-		validMoves = getValidQueenMoves(boardState, targetSquare);
+		possibleMoves = getValidQueenMoves(boardState, targetSquare);
 	} else {
-		validMoves = null;
+		possibleMoves = null;
 
 		return null;
 	}
 
-	if (!validMoves) {
+	if (!possibleMoves) {
 		return null;
 	}
 
 	// remove moves where the king would be in check
-	validMoves.filter((square) =>
+	possibleMoves = possibleMoves.filter((square) =>
 		simulateMove(
 			targetSquare,
 			getDomSquareFromBoardSquare(square.y, square.x) as HTMLElement,
 		),
 	);
 
-	for (const square of validMoves) {
-		const domSquare = getDomSquareFromBoardSquare(square.y, square.x);
-		domSquare!.classList.add("valid-move");
-	}
-
-	return validMoves;
+	return possibleMoves.length > 0 ? possibleMoves : null;
 }
 
 function getCheckmate() {
+	let isMated = true;
+
 	for (let i = 0; i < 64; i++) {
 		if (boardState[i].piece == null) {
 			continue;
 		}
 
-		if (boardState[i].piece.color == playerTurn) {
+		if (boardState[i].piece?.color == playerTurn) {
 			const domSquare = getDomSquareFromBoardSquare(
-				boardState[i].x,
 				boardState[i].y,
+				boardState[i].x,
 			);
 
 			const validMoves = getValidMoves(domSquare);
 
 			if (validMoves != null) {
-				return false;
+				isMated = false;
+			} else {
+				console.log("Not checkmate b/c of piece: ", boardState[i].piece);
 			}
 		}
 	}
 
-	return true;
+	console.log("Checkmate: ", isMated);
+
+	return isMated;
+}
+
+function selectSquare(square: HTMLElement) {
+	hideValidMoves();
+
+	validMoves = canSelectSquare(square) ? getValidMoves(square) : null;
+
+	if (validMoves) {
+		selectedSquare = square;
+		square.classList.add("selected");
+		showValidMoves(validMoves);
+
+		return validMoves;
+	}
 }
 
 function movePiece(
 	previousSquare: HTMLElement,
 	targetSquare: HTMLElement,
 ): boolean {
-	if (previousSquare == null) {
-		return false;
-	}
-
 	const targetSquareIndex = getSquareIndex(
 		Number(targetSquare.dataset.row),
 		Number(targetSquare.dataset.col),
@@ -262,14 +275,6 @@ function movePiece(
 		previousSquare == null // if we capture a piece, ignore
 	) {
 		return false;
-	}
-
-	if (validMoves) {
-		// wipe previous valid move highlights
-		for (const square of validMoves) {
-			const domSquare = getDomSquareFromBoardSquare(square.y, square.x);
-			domSquare!.classList.remove("valid-move");
-		}
 	}
 
 	// movement logic
@@ -332,8 +337,6 @@ function movePiece(
 
 				kingInCheckSquare = kingDomSquare;
 
-				console.log("Do something here to indicate check");
-
 				console.log("Checkmate: ", getCheckmate());
 			} else {
 				kingInCheckSquare?.classList.remove("king-in-check");
@@ -342,11 +345,30 @@ function movePiece(
 
 			selectedSquare = null;
 
-			return false;
+			hideValidMoves();
+
+			return true;
 		}
 	}
 
-	return getValidMoves(targetSquare) != null; // boolean indicating if it found successful valid moves
+	return false; // nothing moved
+}
+
+function showValidMoves(possibleMoves: Square[]) {
+	for (const square of possibleMoves!) {
+		const domSquare = getDomSquareFromBoardSquare(square.y, square.x);
+		domSquare!.classList.add("valid-move");
+	}
+}
+
+function hideValidMoves() {
+	if (validMoves) {
+		// wipe previous valid move highlights
+		for (const square of validMoves) {
+			const domSquare = getDomSquareFromBoardSquare(square.y, square.x);
+			domSquare!.classList.remove("valid-move");
+		}
+	}
 }
 
 function simulateMove(square_from: HTMLElement, square_to: HTMLElement) {
@@ -379,41 +401,35 @@ function simulateMove(square_from: HTMLElement, square_to: HTMLElement) {
 	return true;
 }
 
+function canSelectSquare(targetSquare: HTMLElement) {
+	const targetSquareIndex = getSquareIndex(
+		Number(targetSquare.dataset.row),
+		Number(targetSquare.dataset.col),
+	);
+
+	const piece = boardState[targetSquareIndex].piece;
+
+	return piece?.color == playerTurn;
+}
+
 board.addEventListener("click", (event) => {
 	const targetSquare = (event.target as HTMLElement).closest("div")!;
 
 	// can only select king if it's in check
 
-	const shouldSelect = movePiece(selectedSquare, targetSquare);
+	const moved = movePiece(selectedSquare, targetSquare);
 
-	if (shouldSelect) {
-		// a piece was seelcted and needs to be highlighted; this is false when a move was done or nothing happened so it shouldn't select a square
-		selectedSquare = targetSquare;
-		selectedSquare.classList.add("selected");
+	if (!moved) {
+		selectSquare(targetSquare);
 	}
 });
 
 board.addEventListener("dragstart", (event) => {
 	const targetSquare = (event.target as HTMLElement).closest("div")!;
 
-	const pieceImage = targetSquare.querySelector("img");
-
 	(event as DragEvent).dataTransfer!.effectAllowed = "move";
 
-	const targetSquareIndex = getSquareIndex(
-		Number(targetSquare.dataset.row),
-		Number(targetSquare.dataset.col),
-	);
-
-	if (
-		// true if either nobody is in check or the square being grabbed is the king in check square
-		(boardState[targetSquareIndex].piece?.color == playerTurn &&
-			!kingInCheckSquare) ||
-		targetSquare == kingInCheckSquare
-	) {
-		selectedSquare = targetSquare;
-		validMoves = getValidMoves(selectedSquare);
-	}
+	selectSquare(targetSquare);
 });
 
 board.addEventListener("dragover", (event) => {
@@ -425,11 +441,9 @@ board.addEventListener("dragover", (event) => {
 board.addEventListener("drop", (event) => {
 	const targetSquare = (event.target as HTMLElement).closest("div")!;
 
-	const shouldSelect = movePiece(selectedSquare, targetSquare);
+	const moved = movePiece(selectedSquare, targetSquare);
 
-	if (shouldSelect) {
-		// a piece was seelcted and needs to be highlighted; this is false when a move was done or nothing happened so it shouldn't select a square
-		selectedSquare = targetSquare;
-		selectedSquare.classList.add("selected");
+	if (!moved) {
+		selectSquare(targetSquare);
 	}
 });
