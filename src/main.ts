@@ -169,11 +169,9 @@ for (let i = 0; i < 64; i++) {
 	board.appendChild(square);
 }
 
-console.log(boardState);
-
-function updateValidMoves(targetSquare: HTMLElement): boolean {
+function getValidMoves(targetSquare: HTMLElement): Square[] | null {
 	if (!targetSquare.hasChildNodes()) {
-		return false;
+		return null;
 	}
 
 	const piece =
@@ -199,16 +197,47 @@ function updateValidMoves(targetSquare: HTMLElement): boolean {
 	} else {
 		validMoves = null;
 
-		return false;
+		return null;
 	}
 
 	if (!validMoves) {
-		return false;
+		return null;
 	}
+
+	// remove moves where the king would be in check
+	validMoves.filter((square) =>
+		simulateMove(
+			targetSquare,
+			getDomSquareFromBoardSquare(square.y, square.x) as HTMLElement,
+		),
+	);
 
 	for (const square of validMoves) {
 		const domSquare = getDomSquareFromBoardSquare(square.y, square.x);
 		domSquare!.classList.add("valid-move");
+	}
+
+	return validMoves;
+}
+
+function getCheckmate() {
+	for (let i = 0; i < 64; i++) {
+		if (boardState[i].piece == null) {
+			continue;
+		}
+
+		if (boardState[i].piece.color == playerTurn) {
+			const domSquare = getDomSquareFromBoardSquare(
+				boardState[i].x,
+				boardState[i].y,
+			);
+
+			const validMoves = getValidMoves(domSquare);
+
+			if (validMoves != null) {
+				return false;
+			}
+		}
 	}
 
 	return true;
@@ -218,11 +247,7 @@ function movePiece(
 	previousSquare: HTMLElement,
 	targetSquare: HTMLElement,
 ): boolean {
-	if (
-		kingInCheckSquare &&
-		targetSquare != kingInCheckSquare &&
-		previousSquare == null
-	) {
+	if (previousSquare == null) {
 		return false;
 	}
 
@@ -278,7 +303,7 @@ function movePiece(
 			if (targetSquare.hasChildNodes()) {
 				// capture piece
 
-				targetSquare.removeChild(targetSquare.firstChild);
+				targetSquare.removeChild(targetSquare.firstChild!);
 
 				captureAudio.play();
 			} else {
@@ -308,6 +333,8 @@ function movePiece(
 				kingInCheckSquare = kingDomSquare;
 
 				console.log("Do something here to indicate check");
+
+				console.log("Checkmate: ", getCheckmate());
 			} else {
 				kingInCheckSquare?.classList.remove("king-in-check");
 				kingInCheckSquare = null;
@@ -319,7 +346,37 @@ function movePiece(
 		}
 	}
 
-	return updateValidMoves(targetSquare); // boolean indicating if it found successful valid moves
+	return getValidMoves(targetSquare) != null; // boolean indicating if it found successful valid moves
+}
+
+function simulateMove(square_from: HTMLElement, square_to: HTMLElement) {
+	// move is only legal if king isn't in check afterwards
+
+	let boardStateClone = boardState.map((square) => ({ ...square }));
+
+	const square_from_index = getSquareIndex(
+		Number(square_from.dataset.row),
+		Number(square_from.dataset.col),
+	);
+
+	const square_to_index = getSquareIndex(
+		Number(square_to.dataset.row),
+		Number(square_to.dataset.col),
+	);
+
+	boardStateClone[square_to_index].piece =
+		boardStateClone[square_from_index].piece;
+
+	boardStateClone[square_from_index].piece = null;
+
+	const kingSquare = getKingSquare(boardStateClone, playerTurn);
+	const kingDomSquare = getDomSquareFromBoardSquare(kingSquare.y, kingSquare.x);
+
+	if (kingDomSquare && determineIfInCheck(boardStateClone, kingDomSquare)) {
+		return false;
+	}
+
+	return true;
 }
 
 board.addEventListener("click", (event) => {
@@ -355,7 +412,7 @@ board.addEventListener("dragstart", (event) => {
 		targetSquare == kingInCheckSquare
 	) {
 		selectedSquare = targetSquare;
-		updateValidMoves(selectedSquare);
+		validMoves = getValidMoves(selectedSquare);
 	}
 });
 
