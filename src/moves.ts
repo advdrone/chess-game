@@ -1,7 +1,38 @@
+import { getDomSquareFromBoardSquare } from "./helper";
 import { Square } from "./types";
 
 function getSquareIndex(row: number, col: number): number {
 	return row * 8 + col;
+}
+
+export function simulateMove(boardState: Square[], playerTurn: string, square_from: HTMLElement, square_to: HTMLElement) {
+	// move is only legal if king isn't in check afterwards
+
+	let boardStateClone = boardState.map((square) => ({ ...square }));
+
+	const square_from_index = getSquareIndex(
+		Number(square_from.dataset.row),
+		Number(square_from.dataset.col),
+	);
+
+	const square_to_index = getSquareIndex(
+		Number(square_to.dataset.row),
+		Number(square_to.dataset.col),
+	);
+
+	boardStateClone[square_to_index].piece =
+		boardStateClone[square_from_index].piece;
+
+	boardStateClone[square_from_index].piece = null;
+
+	const kingSquare = getKingSquare(boardStateClone, playerTurn);
+	const kingDomSquare = getDomSquareFromBoardSquare(kingSquare.y, kingSquare.x);
+
+	if (kingDomSquare && determineIfInCheck(boardStateClone, kingDomSquare)) {
+		return false;
+	}
+
+	return true;
 }
 
 export function getValidPawnMoves(
@@ -107,7 +138,7 @@ export function getValidKnightMoves(
 
 // checks if two squares can see each other without obstructions in the same row
 
-function hasRowLineOfSight(
+export function hasRowLineOfSight(
 	boardState: Square[],
 	square_a: Square,
 	square_b: Square,
@@ -130,7 +161,7 @@ function hasRowLineOfSight(
 	return true;
 }
 
-function hasColLineOfSight( // squares guaranteed to be same column, different rows
+export function hasColLineOfSight( // squares guaranteed to be same column, different rows
 	boardState: Square[],
 	square_a: Square,
 	square_b: Square,
@@ -198,6 +229,65 @@ export function getValidRookMoves(
 	return moves;
 }
 
+function canCastle(boardState: Square[], playerTurn: string, kingSquare: HTMLElement, rookSquare: HTMLElement) {
+	const kingSquareIndex = getSquareIndex(
+		Number(kingSquare.dataset.row),
+		Number(kingSquare.dataset.col),
+	);
+
+	const rookSquareIndex = getSquareIndex(
+		Number(rookSquare.dataset.row),
+		Number(rookSquare.dataset.col),
+	);
+
+	const kingSquareState = boardState[kingSquareIndex];
+	const rookSquareState = boardState[rookSquareIndex];
+
+	const castleDirection = kingSquareState.x > rookSquareState.x ? "left" : "right"
+
+	if (!kingSquareState.piece || !rookSquareState.piece) {
+		return false;
+	}
+
+	// no pieces should have moved
+
+	if (kingSquareState.piece.hasMoved || rookSquareState.piece.hasMoved) {
+		console.log("One of them has moved, FALSE");
+
+		return false
+	}
+
+	// do they have a line of sight?
+
+	if (!hasRowLineOfSight(boardState, kingSquareState, rookSquareState)) {
+		console.log("Line of sight, FALSE");
+
+		return false
+	}
+
+	// are they in check?
+
+	if (determineIfInCheck(boardState, kingSquare)) {
+		console.log("King in check, FALSE");
+
+		return false
+	}
+
+	const leftCastleSquare = boardState[kingSquareIndex - 2]
+	const rightCastleSquare = boardState[kingSquareIndex + 2]
+
+	if (castleDirection == "left" && simulateMove(boardState, playerTurn, kingSquare, getDomSquareFromBoardSquare(leftCastleSquare.y, leftCastleSquare.x))) {
+		console.log("CAN CASTLE LEFT")
+		return true
+	}
+
+	if (castleDirection == "right" && simulateMove(boardState, playerTurn, kingSquare, getDomSquareFromBoardSquare(rightCastleSquare.y, rightCastleSquare.x))) {
+		console.log("CAN CASTLE RIGHT")
+		return true
+	}
+}
+
+
 export function getValidKingMoves(
 	boardState: Square[],
 	kingSquare: HTMLElement,
@@ -222,6 +312,24 @@ export function getValidKingMoves(
 		{ row: row + 1, col: col },
 		{ row: row + 1, col: col + 1 },
 	];
+
+	const canCastleRight = canCastle(boardState, kingSquareState.piece?.color, kingSquare, getDomSquareFromBoardSquare(
+		kingSquareState.y,
+		kingSquareState.x + 3,
+	))
+
+	const canCastleLeft = canCastle(boardState, kingSquareState.piece?.color, kingSquare, getDomSquareFromBoardSquare(
+		kingSquareState.y,
+		kingSquareState.x - 4,
+	))
+
+	if (canCastleLeft) {
+		potentialMoves.push({row: row, col: col - 2})
+	}
+
+	if (canCastleRight) {
+		potentialMoves.push({ row: row, col: col + 2})
+	}
 
 	for (const move of potentialMoves) {
 		if (move.row >= 0 && move.row < 8 && move.col >= 0 && move.col < 8) {

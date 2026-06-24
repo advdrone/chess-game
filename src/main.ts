@@ -10,9 +10,13 @@ import {
 	getValidPawnMoves,
 	getValidQueenMoves,
 	getValidRookMoves,
+	hasRowLineOfSight,
+	simulateMove,
 } from "./moves";
+
 import { Piece } from "./pieces";
 import { Square } from "./types";
+import { getDomSquareFromBoardSquare } from "./helper";
 
 const moveAudio = new Audio(moveSound);
 const captureAudio = new Audio(captureSound);
@@ -27,11 +31,10 @@ let selectedSquare: HTMLElement | null = null;
 let validMoves: Square[] | null = null;
 let kingInCheckSquare: HTMLElement | null = null;
 
-let playerTurn: string = "light";
 
-function getDomSquareFromBoardSquare(row: number, col: number) {
-	return document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-}
+// temporary variables for testing
+
+let playerTurn: string = "light";
 
 function placeChessPiece(
 	type: string,
@@ -219,6 +222,8 @@ function getValidMoves(targetSquare: HTMLElement): Square[] | null {
 	// remove moves where the king would be in check
 	possibleMoves = possibleMoves.filter((square) =>
 		simulateMove(
+			boardState,
+			playerTurn,
 			targetSquare,
 			getDomSquareFromBoardSquare(square.y, square.x) as HTMLElement,
 		),
@@ -335,6 +340,63 @@ function movePiece(
 				boardState[previousSquareIndex].piece;
 			boardState[previousSquareIndex].piece = null;
 
+			// move was valid logic goes here
+
+			boardState[targetSquareIndex].piece!.hasMoved = true;
+
+			// player castled if distance is greater than 1
+
+			if (Math.abs(previousSquareIndex - targetSquareIndex) > 1 && boardState[targetSquareIndex].piece?.type == "king") {
+				if (targetSquareIndex > previousSquareIndex) {
+					// castled right
+
+					console.log("Castle right logic happening rn")
+
+					const rightRookIndex = targetSquareIndex + 1
+					const targetRookIndex = targetSquareIndex - 1
+
+					const rightRookDomSquare = getDomSquareFromBoardSquare(boardState[rightRookIndex].y, boardState[rightRookIndex].x)
+
+					const rookTargetDomSquare = getDomSquareFromBoardSquare(boardState[targetRookIndex].y, boardState[targetRookIndex].x)
+
+					// update board state
+
+					boardState[targetSquareIndex - 1].piece = boardState[rightRookIndex].piece
+					boardState[rightRookIndex].piece = null;
+
+					// update visuals
+
+					const rookPiece = rightRookDomSquare?.removeChild(rightRookDomSquare.firstChild!)
+
+					rookTargetDomSquare.appendChild(rookPiece);
+				}
+
+				if (targetSquareIndex < previousSquareIndex) {
+					// castled left
+
+					console.log("Castle left logic happening rn")
+
+
+					const leftRookIndex = targetSquareIndex -2
+					const targetRookIndex = targetSquareIndex + 1
+
+					const leftRookDomSquare = getDomSquareFromBoardSquare(boardState[leftRookIndex].y, boardState[leftRookIndex].x)
+
+					const rookTargetDomSquare = getDomSquareFromBoardSquare(boardState[targetRookIndex].y, boardState[targetRookIndex].x)
+
+					// update board state
+
+					boardState[targetSquareIndex + 1].piece = boardState[leftRookIndex].piece
+					boardState[leftRookIndex].piece = null;
+
+					// update visuals
+
+					const rookPiece = leftRookDomSquare?.removeChild(leftRookDomSquare.firstChild!)
+
+					rookTargetDomSquare.appendChild(rookPiece);
+				}
+			}
+
 			playerTurn = (playerTurn == "light" && "dark") || "light";
 
 			const kingSquare = getKingSquare(boardState, playerTurn);
@@ -382,36 +444,6 @@ function hideValidMoves() {
 	}
 }
 
-function simulateMove(square_from: HTMLElement, square_to: HTMLElement) {
-	// move is only legal if king isn't in check afterwards
-
-	let boardStateClone = boardState.map((square) => ({ ...square }));
-
-	const square_from_index = getSquareIndex(
-		Number(square_from.dataset.row),
-		Number(square_from.dataset.col),
-	);
-
-	const square_to_index = getSquareIndex(
-		Number(square_to.dataset.row),
-		Number(square_to.dataset.col),
-	);
-
-	boardStateClone[square_to_index].piece =
-		boardStateClone[square_from_index].piece;
-
-	boardStateClone[square_from_index].piece = null;
-
-	const kingSquare = getKingSquare(boardStateClone, playerTurn);
-	const kingDomSquare = getDomSquareFromBoardSquare(kingSquare.y, kingSquare.x);
-
-	if (kingDomSquare && determineIfInCheck(boardStateClone, kingDomSquare)) {
-		return false;
-	}
-
-	return true;
-}
-
 function canSelectSquare(targetSquare: HTMLElement) {
 	const targetSquareIndex = getSquareIndex(
 		Number(targetSquare.dataset.row),
@@ -453,6 +485,7 @@ board.addEventListener("drop", (event) => {
 	const targetSquare = (event.target as HTMLElement).closest("div")!;
 
 	const moved = movePiece(selectedSquare, targetSquare);
+
 
 	if (!moved) {
 		selectSquare(targetSquare);

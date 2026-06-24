@@ -3,6 +3,7 @@ class Piece {
 		public type: string,
 		public color: string,
 		public position: { x: number; y: number },
+		public hasMoved: boolean = false
 	) {}
 
 	public getMoves() {}
